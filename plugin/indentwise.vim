@@ -136,6 +136,22 @@ function! s:_get_line_of_relative_indent(first_line_of_current_range, last_line_
             elseif candidate_line_indent != current_indent
                 let indent_depth_changed = 1
             endif
+        elseif (a:target_indent_depth == "<=")
+            if candidate_line_indent < current_indent
+                let accept_line = 1
+            elseif candidate_line_indent == current_indent
+                if !skip_blanks || !blank_line
+                  if l:indent_depth_changed || !g:indentwise_equal_indent_skips_contiguous
+                      let accept_line = 1
+                      let indent_depth_changed = 0
+                  else
+                      let last_accepted_line = current_line
+                  endif
+                endif
+
+            elseif candidate_line_indent > current_indent
+                let indent_depth_changed = 1
+            endif
         endif
         if accept_line
             if !skip_blanks || !blank_line
@@ -437,6 +453,15 @@ onoremap <silent> <Plug>(IndentWiseBlockScopeBoundaryBegin) V:<C-U>call <SID>mov
 nnoremap <silent> <Plug>(IndentWiseBlockScopeBoundaryEnd)      :<C-U>call <SID>move_to_indent_block_scope_boundary(1, "n")<CR>
 vnoremap <silent> <Plug>(IndentWiseBlockScopeBoundaryEnd)           :call <SID>move_to_indent_block_scope_boundary(1, "v")<CR>
 onoremap <silent> <Plug>(IndentWiseBlockScopeBoundaryEnd)     V:<C-U>call <SID>move_to_indent_block_scope_boundary(1, "o")<CR>
+
+nnoremap <silent> <Plug>(IndentWiseBlockEndOrNext)        :<C-U>call <SID>move_to_indent_depth(1,  "<=", 0, "n")<CR>
+vnoremap <silent> <Plug>(IndentWiseBlockEndOrNext)             :call <SID>move_to_indent_depth(1,  "<=", 0, "v")<CR>
+onoremap <silent> <Plug>(IndentWiseBlockEndOrNext)       V:<C-U>call <SID>move_to_indent_depth(1,  "<=", 1, "o")<CR>
+
+nnoremap <silent> <Plug>(IndentWiseBlockBeginOrPrev)        :<C-U>call <SID>move_to_indent_depth(0,  "<=", 0, "n")<CR>
+vnoremap <silent> <Plug>(IndentWiseBlockBeginOrPrev)             :call <SID>move_to_indent_depth(0,  "<=", 0, "v")<CR>
+onoremap <silent> <Plug>(IndentWiseBlockBeginOrPrev)       V:<C-U>call <SID>move_to_indent_depth(0,  "<=", 1, "o")<CR>
+
 
 if !exists("g:indentwise_suppress_keymaps") || !g:indentwise_suppress_keymaps
     if !hasmapto('<Plug>(IndentWisePreviousLesserIndent)')
